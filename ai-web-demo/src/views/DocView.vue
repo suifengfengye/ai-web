@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import Markdown from 'vue3-markdown-it'
-import { computed, ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect } from 'vue'
 
-const content = ref(`小文盲在班里是学习最差的，整天像这假期该怎么玩，作业没有一天写完过。新学期又开始了，他背着仿佛千斤重的书包，在回家的路上。
-      
-忽然，他看见一个卖茶叶蛋的小摊。他克服不了见什么食物都馋的毛病，用妈妈给他买本子的两块钱买了四个茶叶蛋，刚放到嘴里，又念一想：我何必不开个卖茶叶蛋的小摊呢？这样既能赚钱，又能吃到自己爱吃的茶叶蛋，这不是两全其美吗？说干就干，他向妈妈要了1000元说要交学费，然后自己开了个卖茶叶蛋的小摊。花200元买了个炉子，写了个招牌，靠平时观察别人做茶叶蛋的方法做了起来，然后把课本当柴烧，扔进了炉子里。那个体营业证怎么办呢？他花高价请路人写了个个体营业证，挂在自己营业后面的墙上，还贴了张自己的照片。`)
+const content = ref(`1233334444`)
 const modalInfo = ref({
   visible: true,
   left: 48,
@@ -42,6 +40,7 @@ const castList = ref([
 ])
 const contentRef = ref(null)
 const inputRef = ref(null)
+const conversationId = ref(`c-${Date.now()}`)
 
 const handleMouseRight = (e: any) => {
   modalInfo.value.visible = true;
@@ -60,12 +59,15 @@ const handleClickOutside = () => {
 const handleSubmit = (params: any, apiKey: string) => {
   // 使用fetch()请求远程的流式API的返回
   generating.value = true;
-  fetch(`http://127.0.0.1:8000/${apiKey}`, {
+  fetch(`http://127.0.0.1:8000/${apiKey}/conversationId`, {
     method: 'POST',
     headers: new Headers({
       'Content-Type': 'application/json',
     }),
-    body: JSON.stringify(params),
+    body: JSON.stringify({
+      ...params,
+      engine: 'llama2',
+    }),
   })
     .then(response => response.body)
     .then(async (body: any) => {
@@ -91,7 +93,7 @@ const handleSubmitCustom = () => {
   modalInfo.value.visible = false;
   handleSubmit({
     text: `"${content.value}"。${text}`,
-  }, 'ai_fixed_content_custom')
+  }, 'ai_stream')
 }
 const handleBlur = () => {
   setTimeout(() => {
@@ -111,13 +113,34 @@ const handleClickCast = (item: any) => {
     params.sub_type = sub_type
   }
   // console.log('@@@@@@params', params)
-  handleSubmit(params, 'ai_fixed_content')
+  handleSubmit(params, 'ai_polish')
   modalInfo.value.visible = false;
 }
 
 const castVisible = computed(() => {
   return modalInfo?.value?.foucsInput && !problem?.value
 })
+
+const loading = ref(true)
+
+const tableData = [
+  {
+    date: '2016-05-02',
+    name: 'John Smith',
+    address: 'No.1518,  Jinshajiang Road, Putuo District',
+  },
+  {
+    date: '2016-05-04',
+    name: 'John Smith',
+    address: 'No.1518,  Jinshajiang Road, Putuo District',
+  },
+  {
+    date: '2016-05-01',
+    name: 'John Smith',
+    address: 'No.1518,  Jinshajiang Road, Putuo District',
+  },
+]
+
 </script>
 <template>
   <div class="doc-box" @contextmenu.prevent="handleMouseRight">
