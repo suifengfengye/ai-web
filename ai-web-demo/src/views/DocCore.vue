@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { watchPostEffect, onMounted, ref, nextTick, computed } from 'vue'
-import Quill from 'quill'
-import 'quill/dist/quill.core.css'
-import "quill/dist/quill.snow.css";
-import { EventUtil, getElementLeft } from '@/utils/utils'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useClipboard } from '@vueuse/core'
 
-const editorContainerRef: any = ref(null)
+import { fetchAI } from '@/services/'
+import { EventUtil, getElementLeft } from '@/utils/utils'
+import QuillEditor from '@/components/QuillEditor/index.vue'
+
+import "quill/dist/quill.snow.css";
+
+const { copy } = useClipboard({ source: '' })
+
+// const editorContainerRef: any = ref(null)
+const quillEditorRef = ref(null)
+
 const popupRef: any = ref(null)
 const dropdownRef: any = ref(null)
 const questionRef: any = ref(null)
@@ -30,30 +38,24 @@ const content = ref(`小文盲在班里是学习最差的，整天像这假期�
       
 忽然，他看见一个卖茶叶蛋的小摊。他克服不了见什么食物都馋的毛病，用妈妈给他买本子的两块钱买了四个茶叶蛋，刚放到嘴里，又念一想：我何必不开个卖茶叶蛋的小摊呢？这样既能赚钱，又能吃到自己爱吃的茶叶蛋，这不是两全其美吗？说干就干，他向妈妈要了1000元说要交学费，然后自己开了个卖茶叶蛋的小摊。花200元买了个炉子，写了个招牌，靠平时观察别人做茶叶蛋的方法做了起来，然后把课本当柴烧，扔进了炉子里。那个体营业证怎么办呢？他花高价请路人写了个个体营业证，挂在自己营业后面的墙上，还贴了张自己的照片。`)
 
+// 记录上一次请求AI接口的参数，重新生成的时候使用
+let preAIParams: any = null
 
-let quillInst: any = null
-let currentSelection: any = null
-
-onMounted(() => {
-  quillInst = new Quill('#editor', {
-    theme: 'snow',
-    placeholder: '输入问题，或从下方选择场景提问。',
-  })
-  quillInst.setContents([
-    {
-      insert: content.value,
-    }
-  ])
-
-  // 监听右键事件
-  editorContainerRef.value.addEventListener('contextmenu', async (event: any) => {
-    event.preventDefault();
-    currentSelection = quillInst.getSelection();
+const handleDblclick = async (event: any) => {
     showMenu.value = true;
     await nextTick(); // 确保Vue已更新DOM
     const popupEl: any = popupRef.value
     if (popupEl) {
-      const left = getElementLeft(editorContainerRef.value)
+      const editorEl = document.getElementById('doc-core-id')
+      if (!editorEl) {
+        ElMessage.error({
+          message: '获取编辑器失败!',
+          type: 'error',
+          duration: 0,
+        })
+        return
+      }
+      const left = getElementLeft(editorEl)
       popupEl.style.position = 'absolute';
       popupEl.style.left = `${left + 15}px`;
       popupEl.style.top = `${event.clientY + 16}px`;
@@ -62,16 +64,41 @@ onMounted(() => {
       aiAnswerHandler.value.top = event.clientY + 16
     }
     questionRef.value.focus()
-    if (currentSelection && currentSelection.length > 0) {
-        // 应用高亮样式
-        quillInst.formatText(currentSelection.index, currentSelection.length, {
-            'background-color': '#d0eac8' // 使用内联样式直接设置背景色
-        }, 'user');
-    }
-  });
-})
+}
 
+const closeAiAnserPopup = () => {
+  aiAnswerHandler.value.show = false
+  aiAnswer.value = ''
+  quillEditorRef.value && (quillEditorRef.value as any).clearFormat()
+}
+
+let confirmThrowAwayCount = 0
+const confirmThrowAway = () => {
+  // 可能多次触发,使用一个计数器控制
+  if (confirmThrowAwayCount > 0) {
+    return
+  }
+  confirmThrowAwayCount += 1
+  ElMessageBox.confirm(
+    '确定要丢弃当前内容吗?',
+    '丢弃提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+      confirmThrowAwayCount -= 1
+      closeAiAnserPopup()
+    })
+    .catch(() => {
+      confirmThrowAwayCount -= 1
+    })
+}
+
+// 可能多次触发
 const handleClickOutside = (e: any) => {
+  debugger
   const _isClickChildren = EventUtil.isClickChildren({
     event: e,
     classNames: ['input-box', 'dropdown-box', 'ai-answer-box'],
@@ -79,78 +106,89 @@ const handleClickOutside = (e: any) => {
   if (_isClickChildren) {
     return
   }
-  setTimeout(() => {
-    showMenu.value = false;
-    if (currentSelection) {
-      quillInst.removeFormat(currentSelection.index, currentSelection.length, 'user');
-    }
-  }, 0)
+  showMenu.value = false;
+  if (aiAnswerHandler.value.show) {
+    confirmThrowAway()
+    return
+  }
+  quillEditorRef.value && (quillEditorRef.value as any).clearFormat()
 }
 
-const handleSearchAI = (params: any) => {
+const handleSearchAI = async (params: any) => {
   // 使用fetch()请求远程的流式API的返回
   fetching.value = true;
   aiAnswerHandler.value.show = true
-  
-  fetch(`http://127.0.0.1:8000/ai_polish/conversationId`, {
-    method: 'POST',
-    headers: new Headers({
-      'Content-Type': 'application/json',
-    }),
-    body: JSON.stringify({
-      ...params,
-      // engine: 'llama2',
-    }),
-  })
-    .then(response => response.body)
-    .then(async (body: any) => {
-      // console.log('rb', rb);
-      aiAnswer.value = ''
-      let reader = body.getReader()
-      while (true) {
-        let { value, done } = await reader.read()
-        // console.log('@@@@value', )
-        aiAnswer.value += new TextDecoder().decode(value)
-        if (done) {
-          console.log('read done')
-          fetching.value = false;
-          break
-        }
+  preAIParams = params
+  const streamReader = await fetchAI(params)
+  if (streamReader) {
+    while (true) {
+      let { value, done } = await streamReader.read()
+      aiAnswer.value += new TextDecoder().decode(value)
+      if (done) {
+        fetching.value = false;
+        break
       }
-    })
+    }
+  }
 }
 
 const handleClickCast = (item: any) => {
-  // console.log('点击了', item)
   const value = item.value
   const [type, sub_type] = value.split('-')
+  const text = (quillEditorRef.value as any).getText()
   const params: any = {
-    text: content.value,
+    text,
     type,
   }
   if (sub_type) {
     params.sub_type = sub_type
   }
-  // console.log('@@@@@@params', params)
   handleSearchAI(params)
-  // modalInfo.value.visible = false;
+  showMenu.value = false;
 }
 
 const handleSubmitCustom = () => {
   // todo
-  // const text = problem.value
-  // problem.value = ''
-  // modalInfo.value.visible = false;
-  // handleSubmit({
-  //   text: `"${content.value}"。${text}`,
-  // }, 'ai_stream')
 }
 
-const handleBlur = () => {
-  setTimeout(() => {
-    // todo
-    // modalInfo.value.foucsInput = false
-  }, 200)
+const handleReplace = () => {
+  if (!aiAnswer.value) {
+    ElMessage.warning('没有AI生成的内容')
+    return
+  }
+  (quillEditorRef.value as any).replace(aiAnswer.value)
+  closeAiAnserPopup()
+}
+
+const handleInsert = () => {
+  if (!aiAnswer.value) {
+    ElMessage.warning('没有AI生成的内容')
+    return
+  }
+  (quillEditorRef.value as any).insert(aiAnswer.value)
+  closeAiAnserPopup()
+}
+
+const handleCopy = () => {
+  if (!aiAnswer.value) {
+    ElMessage.warning('没有AI生成的内容')
+    return
+  }
+  copy(aiAnswer.value)
+  closeAiAnserPopup()
+  ElMessage.success('复制成功')
+}
+
+const handleRegenerate = async (event: Event) => {
+  if (!aiAnswer.value) {
+    ElMessage.warning('没有AI生成的内容')
+    return
+  }
+  event.preventDefault()
+  event.stopPropagation()
+  aiAnswer.value = ''
+  // 重新生成
+  handleSearchAI(preAIParams)
 }
 
 const isShowBottomBar = computed(() => {
@@ -160,7 +198,13 @@ const isShowBottomBar = computed(() => {
 </script>
 <template>
   <div class="doc-core-box">
-    <div ref="editorContainerRef" id="editor" class="doc-core-content"></div>
+     <QuillEditor 
+      ref="quillEditorRef"
+      :content="content"
+      :class-list="['doc-core-content']"
+      id="doc-core-id"
+      @on-dblclick="handleDblclick"
+     />
     <div v-show="showMenu" ref="popupRef">
       <div class="input-box" v-click-outside="handleClickOutside">
         <span class="input-box-icon">
@@ -168,8 +212,7 @@ const isShowBottomBar = computed(() => {
         </span>
         <input v-model="question" ref="questionRef" 
             @keydown.enter="handleSubmitCustom" 
-            placeholder="输入问题，或从下方选择场景提问。"
-           @blur="handleBlur" />
+            placeholder="输入问题，或从下方选择场景提问。" />
         <span class="send-btn" :class="[question ? 'active' : '']" @click="handleSubmitCustom">发送</span>
       </div>
       <div ref="dropdownRef" class="dropdown-box" v-click-outside="handleClickOutside">
@@ -191,7 +234,7 @@ const isShowBottomBar = computed(() => {
           <el-icon class="loader" v-if="fetching"><Loading /></el-icon>
         </span>
         <span>
-          <span class="close-ai-answer">
+          <span class="close-ai-answer" @click="confirmThrowAway">
             <el-icon><Close /></el-icon>
           </span>
         </span>
@@ -200,11 +243,11 @@ const isShowBottomBar = computed(() => {
         {{ aiAnswer }}
       </div>
       <div class="ai-answer-bottombar" v-if="isShowBottomBar">
-        <el-button size="small">
+        <el-button size="small" @click="handleReplace">
           <el-icon><Select /></el-icon>
           替换原文
         </el-button>
-        <el-button size="small">
+        <el-button size="small" @click="handleInsert">
           <el-icon><BottomLeft /></el-icon>
           插入下方
         </el-button>
@@ -213,25 +256,16 @@ const isShowBottomBar = computed(() => {
           content="复制"
           placement="bottom"
         >
-          <el-button size="small">
+          <el-button size="small" @click="handleCopy">
             <el-icon><CopyDocument /></el-icon>
           </el-button>
         </el-tooltip>
         <el-tooltip
           effect="dark"
-          content="删除"
+          content="重新生成"
           placement="bottom"
         >
-          <el-button size="small">
-            <el-icon><Delete /></el-icon>
-          </el-button>
-        </el-tooltip>
-        <el-tooltip
-          effect="dark"
-          content="重写"
-          placement="bottom"
-        >
-          <el-button size="small">
+          <el-button size="small" @click="handleRegenerate">
             <el-icon><RefreshLeft /></el-icon>
           </el-button>
         </el-tooltip>
@@ -245,9 +279,9 @@ const isShowBottomBar = computed(() => {
   background: #f9fafb;
   padding-top: 44px;
 
-  .doc-core-content {
-    min-height: calc(100vh - 64px);
-  }
+  // .doc-core-content {
+  //   min-height: calc(100vh - 64px);
+  // }
   
   .ai-answer-box {
     position: absolute;
@@ -353,24 +387,9 @@ const isShowBottomBar = computed(() => {
 }
 </style>
 <style lang="less">
-@doc-width: 960px;
 .doc-core-box {
-  .ql-container {
-    width: @doc-width;
-    margin: 0 auto 24px;
-    box-shadow: rgba(0, 0, 0, 0.06) 0px 0px 10px 0px, rgba(0, 0, 0, 0.04) 0px 0px 0px 1px;
-    border: none;
-    background: #fff;
-    font-size: 14px;
-  }
-
-  .ql-toolbar.ql-snow {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background-color: #f9fafb;
+  .doc-core-content {
+    min-height: calc(100vh - 64px);
   }
 }
 </style>
