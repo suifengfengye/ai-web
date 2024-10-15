@@ -5,3 +5,7 @@ node_modules
 
 __pycache__/
 *.pyc
+
+main_demo.py
+
+.vscode
