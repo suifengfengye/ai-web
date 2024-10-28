@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watchPostEffect, onMounted, ref, nextTick, computed } from 'vue'
+import { watchPostEffect, onMounted, ref, nextTick, computed, onBeforeUnmount } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useClipboard } from '@vueuse/core'
 
@@ -26,12 +26,12 @@ const aiAnswerHandler = ref({
   top: 0,
 })
 const castList = ref([
-  { label: '润色-口语化', value: 'polish-口语化' },
-  { label: '润色-更活泼', value: 'polish-更活泼' },
-  { label: '润色-更正式', value: 'polish-更正式' },
+  { label: '润色-口语化', value: 'polish-colloquial' },
+  { label: '润色-更活泼', value: 'polish-lively' },
+  { label: '润色-更正式', value: 'polish-formal' },
   { label: '续写', value: 'continue_writing' },
-  { label: '缩短篇幅', value: 'shorten_text' },
-  { label: '扩充篇幅', value: 'expand_text' },
+  { label: '缩短篇幅', value: 'shorten' },
+  { label: '扩充篇幅', value: 'expand' },
 ]);
 const question = ref('')
 const content = ref(`小文盲在班里是学习最差的，整天像这假期该怎么玩，作业没有一天写完过。新学期又开始了，他背着仿佛千斤重的书包，在回家的路上。
@@ -40,6 +40,10 @@ const content = ref(`小文盲在班里是学习最差的，整天像这假期�
 
 // 记录上一次请求AI接口的参数，重新生成的时候使用
 let preAIParams: any = null
+
+let lastCommandPressTime: number | null = null;
+const commandKey = 'Meta'; // 对应 Mac 的 Command 键
+const ctrlKey = 'Control'; // 对应 Windows 的 Ctrl 键
 
 const handleDblclick = async (event: any) => {
     showMenu.value = true;
@@ -98,7 +102,7 @@ const confirmThrowAway = () => {
 
 // 可能多次触发
 const handleClickOutside = (e: any) => {
-  debugger
+  // debugger
   const _isClickChildren = EventUtil.isClickChildren({
     event: e,
     classNames: ['input-box', 'dropdown-box', 'ai-answer-box'],
@@ -118,6 +122,9 @@ const handleSearchAI = async (params: any) => {
   // 使用fetch()请求远程的流式API的返回
   fetching.value = true;
   aiAnswerHandler.value.show = true
+  if (params.question === undefined) {
+    params.question = ''
+  }
   preAIParams = params
   const streamReader = await fetchAI(params)
   if (streamReader) {
@@ -134,21 +141,27 @@ const handleSearchAI = async (params: any) => {
 
 const handleClickCast = (item: any) => {
   const value = item.value
-  const [type, sub_type] = value.split('-')
-  const text = (quillEditorRef.value as any).getText()
+  const [op_type, op_sub_type] = value.split('-')
+  const content = (quillEditorRef.value as any).getText()
   const params: any = {
-    text,
-    type,
+    content,
+    op_type,
   }
-  if (sub_type) {
-    params.sub_type = sub_type
+  if (op_sub_type) {
+    params.op_sub_type = op_sub_type
   }
   handleSearchAI(params)
   showMenu.value = false;
 }
 
 const handleSubmitCustom = () => {
-  // todo
+  const content = (quillEditorRef.value as any).getText()
+  handleSearchAI({
+    content,
+    question: question.value,
+  })
+  question.value = ''
+  showMenu.value = false;
 }
 
 const handleReplace = () => {
@@ -194,6 +207,41 @@ const handleRegenerate = async (event: Event) => {
 const isShowBottomBar = computed(() => {
   return !!aiAnswer.value && !fetching.value
 })
+
+const handleKeyDown = (event: KeyboardEvent) => {
+      const currentTime = new Date().getTime();
+      const key = event.key;
+
+      if (key === commandKey || key === ctrlKey) {
+        if (lastCommandPressTime && (currentTime - lastCommandPressTime) < 500) {
+          // 如果两次按键间隔小于500毫秒，认为是连续按键
+          const quillInstance = (quillEditorRef.value as any).getQuillInst()
+          const editorElement = (quillEditorRef.value as any).getEditor()
+          if (quillInstance) {
+            const range = quillInstance.getSelection();
+            if (range) {
+              const bounds = quillInstance.getBounds(range.index);
+              // const editorElement = editor.value;
+              if (editorElement) {
+                const rect = editorElement.getBoundingClientRect();
+                handleDblclick({
+                  clientY: rect.top + bounds.top,
+                })
+              }
+            }
+          }
+        }
+        lastCommandPressTime = currentTime;
+      }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeyDown);
+});
 
 </script>
 <template>

@@ -9,3 +9,5 @@ __pycache__/
 main_demo.py
 
 .vscode
+
+memory.db

@@ -30,13 +30,15 @@ defineExpose({
   clearFormat: () => {
     if (currentSelection) {
       quillInst.removeFormat(currentSelection.index, currentSelection.length, 'user');
+      currentSelection = null
     }
   },
   getText: () => {
     if (currentSelection) {
       return quillInst.getText(currentSelection.index, currentSelection.length)
     }
-    return quillInst.getText()
+    // return quillInst.getText()
+    return ''
   },
   replace: (text: string) => {
     if (!currentSelection) {
@@ -58,6 +60,12 @@ defineExpose({
     .insert(text)
     .insert('\n\n')
     quillInst.updateContents(_update)
+  },
+  getQuillInst: () => {
+    return quillInst
+  },
+  getEditor: () => {
+    return editorContainerRef?.value
   },
 })
 
