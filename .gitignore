@@ -11,3 +11,7 @@ main_demo.py
 .vscode
 
 memory.db
+
+ai-services-playground
+
+**.log

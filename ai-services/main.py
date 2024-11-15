@@ -1,20 +1,36 @@
-from fastapi import FastAPI, Path, Query, Body
+from fastapi import FastAPI, Path, Query, Body, Request
 import uvicorn
 from typing import Annotated
 from enum import Enum
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.chat_models import ChatOllama
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine
 from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain_core.prompts import MessagesPlaceholder
+import logging
+from event_handler import LCELEventHandler
 
 # uvicorn APP [OPTIONS]
 # uvicorn "<module>:<attribute>" [OPTIONS]
 app = FastAPI()
+
+logging.basicConfig(filename="./ai_services.log",
+                    level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+                    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logging.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal Server Error in main"}
+    )
 
 
 class OpTypeEnum(Enum):
@@ -74,7 +90,7 @@ async def generate_ai_docs(params: AIDocBodyType = Body(title="请求体信息")
         ('human', "{input}")
     ])
     # 3. 创建llm对象
-    llm = ChatOllama(model="llama3")
+    llm = ChatOllama(model="qwen2")
     # 4. 构建langchain对象
     chain = prompt | llm
     # chain_history = RunnableWithMessageHistory(
@@ -87,6 +103,8 @@ async def generate_ai_docs(params: AIDocBodyType = Body(title="请求体信息")
         get_session_history=aget_session_history,
         history_messages_key="history"
     )
+    achain_history = achain_history.with_config(
+        {"callbacks": [LCELEventHandler()]})
     # 5. 编写业务逻辑
     input = ""
     if params.question:
