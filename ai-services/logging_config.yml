@@ -1,0 +1,22 @@
+disable_existing_loggers: false
+formatters:
+  standard:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+handlers:
+  app_handler:
+    class: logging.FileHandler
+    filename: ai_services.log
+    formatter: standard
+    level: INFO
+loggers:
+  '':
+    handlers:
+    - app_handler
+    level: INFO
+    propagate: true
+  docs:
+    handlers:
+    - app_handler
+    level: INFO
+    propagate: false
+version: 1

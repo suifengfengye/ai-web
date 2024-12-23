@@ -15,3 +15,7 @@ memory.db
 ai-services-playground
 
 **.log
+
+.venv
+
+venv_playground

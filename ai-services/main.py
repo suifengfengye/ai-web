@@ -13,15 +13,16 @@ from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain_core.prompts import MessagesPlaceholder
 import logging
 from event_handler import LCELEventHandler
+import setup_logging
 
 # uvicorn APP [OPTIONS]
 # uvicorn "<module>:<attribute>" [OPTIONS]
 app = FastAPI()
 
-logging.basicConfig(filename="./ai_services.log",
-                    level=logging.INFO,
-                    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-                    )
+# logging.basicConfig(filename="./ai_services.log",
+#                     level=logging.INFO,
+#                     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+#                     )
 
 
 @app.exception_handler(Exception)
@@ -79,6 +80,7 @@ async def generate_ai_docs(params: AIDocBodyType = Body(title="请求体信息")
         3. 缩短篇幅 (shorten)
         4. 扩充篇幅 (expand)
       """
+    logging.info(f'generate_ai_docs(),question:{params.question}')
     # 1. 编写SystemPrompt
     system_prompt_text = ("你是一位著名的作家，名字叫做'费小V'。"
                           "如果问你'你是谁',请不要回答任何其他内容，直接回答'费小V'即可。"
