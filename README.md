@@ -11,3 +11,6 @@
 - ai-services: fastapi 服务代码
 - ai-web-demo: 前端代码
 - tutorial: notebook 文件，笔记材料等。（PS：.ipynb 文件可以使用 jupyter lab 打开）
+- rag-tutorial: RAG 系列视频相关代码，notebook 文件和笔记材料。（PS：.ipynb 文件可以使用 jupyter lab 打开）
+
+# 3. AI 等问题咨询
