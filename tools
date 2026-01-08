@@ -1,0 +1,10 @@
+# 1. @tool装饰器
+
+参数
+- name_or_callable: [可选]，字符串，位置参数，可以不写 "name_or_callable"
+- description: [可选] 工具描述，字符串，（描述也可以放在函数定义中，使用三个双引号包裹，但description优先级更高）
+- args_schema: @tool装饰器装饰的函数的参数定义
+
+```python
+from langchain.tools import tool
+```
