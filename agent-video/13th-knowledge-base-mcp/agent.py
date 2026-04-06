@@ -1,25 +1,23 @@
 from langchain.agents import create_agent, AgentState
 from langchain_openai import ChatOpenAI
 from prompts import system_prompt
-from langchain.tools import tool
 from wikipedia_tool import search_wikipedia
-from weather_tool import get_weather_forecast
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage, ToolMessage
+from langchain_mcp_adapters.client import MultiServerMCPClient
+import atexit
 import asyncio
 import json
 import os
 import requests
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langchain_mcp_adapters.callbacks import Callbacks
-
-from utils import on_progress, on_logging_message
-
-os.environ["NO_PROXY"] = "api.openai-hk.com,127.0.0.1,localhost"
+import subprocess
+import sys
+import time
+from urllib.parse import urlparse
 
 _ENV_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
 load_dotenv(_ENV_PATH)
-
+_KNOWLEDGE_BASE_MCP_PROCESS: subprocess.Popen | None = None
 
 def _get_openai_api_key() -> str | None:
     api_key = os.getenv("OPEN_AI_APIKEY")
@@ -28,60 +26,91 @@ def _get_openai_api_key() -> str | None:
     load_dotenv(_ENV_PATH, override=False)
     return os.getenv("OPEN_AI_APIKEY")
 
-async def dxh_agent():
+def _get_openai_base_url() -> str:
+    configured = os.getenv("OPEN_AI_BASE_URL")
+    if configured and configured.strip():
+        return configured.strip()
+    return "https://api.openai-hk.com/v1"
+
+def _configure_no_proxy_for_base_url(base_url: str):
+    host = urlparse(base_url).hostname
+    if not host:
+        return
+    for key in ("NO_PROXY", "no_proxy"):
+        current = os.getenv(key, "")
+        entries = [item.strip() for item in current.split(",") if item.strip()]
+        if host not in entries:
+            entries.append(host)
+            os.environ[key] = ",".join(entries)
+
+# def _cleanup_knowledge_base_mcp_server():
+#     global _KNOWLEDGE_BASE_MCP_PROCESS
+#     if _KNOWLEDGE_BASE_MCP_PROCESS is None:
+#         return
+#     if _KNOWLEDGE_BASE_MCP_PROCESS.poll() is None:
+#         _KNOWLEDGE_BASE_MCP_PROCESS.terminate()
+#         try:
+#             _KNOWLEDGE_BASE_MCP_PROCESS.wait(timeout=3)
+#         except Exception:
+#             _KNOWLEDGE_BASE_MCP_PROCESS.kill()
+#     _KNOWLEDGE_BASE_MCP_PROCESS = None
+
+# def _start_knowledge_base_mcp_server():
+#     global _KNOWLEDGE_BASE_MCP_PROCESS
+#     if _KNOWLEDGE_BASE_MCP_PROCESS is not None and _KNOWLEDGE_BASE_MCP_PROCESS.poll() is None:
+#         return
+#     _KNOWLEDGE_BASE_MCP_PROCESS = subprocess.Popen(
+#         [sys.executable, "knowledge_base_mcp.py"],
+#         cwd=os.path.dirname(__file__),
+#         env=os.environ.copy(),
+#     )
+#     atexit.register(_cleanup_knowledge_base_mcp_server)
+#     for _ in range(20):
+#         if _KNOWLEDGE_BASE_MCP_PROCESS.poll() is not None:
+#             raise RuntimeError("知识库 MCP 服务启动失败。")
+#         try:
+#             response = requests.get("http://127.0.0.1:8000/mcp", timeout=0.5)
+#             if response.status_code in (200, 400, 404, 405, 406):
+#                 return
+#         except Exception:
+#             pass
+#         time.sleep(0.2)
+#     raise RuntimeError("知识库 MCP 服务启动超时。")
+
+def _load_mcp_tools():
+    # _start_knowledge_base_mcp_server()
+
+    async def _load():
+        client = MultiServerMCPClient(
+            {
+                "juhe_mcp": {
+                    "transport": "sse",
+                    "url": "https://mcp.juhe.cn/sse?token=LOtUYoDAXDf5bGZjTGESDO5w6NmCOXZcLnwqfxXvZcZVV6",
+                },
+                "knowledge_base": {
+                    "transport": "streamable-http",
+                    "url": "http://127.0.0.1:8000/mcp",
+                },
+            }
+        )
+        return await client.get_tools()
+
+    return asyncio.run(_load())
+
+def dxh_agent():
     openai_api_key = _get_openai_api_key()
     if not openai_api_key:
         raise ValueError("未找到 OPEN_AI_APIKEY，请检查根目录 .env 文件。")
-    # print('here 1')
-    client = MultiServerMCPClient(
-        {
-        # "wikipedia": {
-        #     "transport": "sse",
-        #     "url": "http://127.0.0.1:8000/sse"
-        # },
-        "juhe_mcp": {
-            "transport": "sse",
-            "url": "https://mcp.juhe.cn/sse?token=LOtUYoDAXDf5bGZjTGESDO5w6NmCOXZcLnwqfxXvZcZVV6"
-        },
-        # "knowledge_base": {
-        #     "transport": "stdio",
-        #     "command": "python",
-        #     "args": ["knowledge_base_tool.py"]
-        # }
-        "knowledge_base": {
-            "transport": "streamable-http",
-            "url": "http://127.0.0.1:8000/mcp"
-        }
-        },
-        callbacks=Callbacks(on_progress=on_progress, on_logging_message=on_logging_message)
-    )
-    tools = await client.get_tools()
-    # flag = False
-    # for index, tool in enumerate(tools):
-    #     print(f"{index}: {tool}")
-    #     print("*" * 100)
-    #     flag = True
-    # if flag:
-    #     print('Break Now!!!')
-    #     return
-    needed_tools = []
-    for tool in tools:
-        if tool.name in ["get_weather", "search_wikipedia", "search_dify_knowledge_base"]:
-            needed_tools.append(tool)
-            print(f"Found tool: {tool}")
-    if needed_tools is None:
-        print("Cannot find search_wikipedia")
-        return
+    base_url = _get_openai_base_url()
+    _configure_no_proxy_for_base_url(base_url)
+    mcp_tools = _load_mcp_tools()
     agent = create_agent(
         model=ChatOpenAI(
             model="gpt-5-mini",
-            base_url="https://api.openai-hk.com/v1",
+            base_url=base_url,
             api_key=openai_api_key,
         ),
-        # tools=[search_dify_knowledge_base, search_wikipedia, get_weather_forecast],
-        # tools=[search_dify_knowledge_base, get_weather_forecast, *needed_tools],
-        # tools=[search_dify_knowledge_base, *needed_tools],
-        tools=needed_tools,
+        tools=[search_wikipedia, *mcp_tools],
         system_prompt=system_prompt,
     )
     return agent
@@ -302,18 +331,7 @@ async def run_astream(agent, user_message):
         print()
     print("调用结束!!!")
 
-async def main():
-    agent = await dxh_agent()
-    user_message = "请你提供一份广州3天的旅游攻略，出行时间为2026.2.25到2026.2.27"
-    # run_stream(agent, user_message)
-    # asyncio.run(run_astream(agent, user_message))
-    await run_astream(agent, user_message)
-    print('Done!!')
-
-
 if __name__ == "__main__":
-    # agent = dxh_agent()
-    # user_message = "请你提供一份广州3天的旅游攻略，出行时间为2026.2.25到2026.2.27"
-    # run_stream(agent, user_message)
-    # asyncio.run(run_astream(agent, user_message))
-    asyncio.run(main())
+    agent = dxh_agent()
+    user_message = "请你提供一份广州3天的旅游攻略，出行时间为2026.2.25到2026.2.27"
+    asyncio.run(run_astream(agent, user_message))
