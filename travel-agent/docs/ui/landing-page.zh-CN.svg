@@ -1,0 +1,66 @@
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1024" fill="#ECFEFF"/>
+  <rect x="32" y="24" width="1376" height="76" rx="24" fill="white" stroke="#CFFAFE"/>
+  <circle cx="86" cy="62" r="18" fill="#0891B2"/>
+  <text x="120" y="68" fill="#164E63" font-size="28" font-weight="700" font-family="Arial, Helvetica, sans-serif">Travel Agent</text>
+  <text x="920" y="68" fill="#0F172A" font-size="18" font-family="Arial, Helvetica, sans-serif">产品介绍</text>
+  <text x="1030" y="68" fill="#0F172A" font-size="18" font-family="Arial, Helvetica, sans-serif">行程规划</text>
+  <text x="1140" y="68" fill="#0F172A" font-size="18" font-family="Arial, Helvetica, sans-serif">我的行程</text>
+  <rect x="1248" y="40" width="128" height="44" rx="14" fill="#22C55E"/>
+  <text x="1284" y="68" fill="white" font-size="18" font-weight="700" font-family="Arial, Helvetica, sans-serif">立即体验</text>
+
+  <rect x="32" y="124" width="1376" height="868" rx="36" fill="url(#heroGrad)"/>
+  <circle cx="1230" cy="220" r="210" fill="#67E8F9" opacity="0.26"/>
+  <circle cx="1140" cy="760" r="160" fill="#22C55E" opacity="0.14"/>
+  <circle cx="220" cy="230" r="160" fill="#A5F3FC" opacity="0.35"/>
+
+  <text x="96" y="238" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">AI 旅游助手</text>
+  <text x="96" y="326" fill="#062B35" font-size="64" font-weight="800" font-family="Arial, Helvetica, sans-serif">告诉我去哪、玩几天</text>
+  <text x="96" y="402" fill="#062B35" font-size="64" font-weight="800" font-family="Arial, Helvetica, sans-serif">我给你一份可执行行程</text>
+  <text x="96" y="456" fill="#335A67" font-size="24" font-family="Arial, Helvetica, sans-serif">结合天气、知识库、路线与预算，生成可浏览、可修改、可保存的旅游方案。</text>
+
+  <rect x="96" y="520" width="720" height="138" rx="28" fill="white" stroke="#A5F3FC" stroke-width="2"/>
+  <text x="128" y="564" fill="#64748B" font-size="18" font-family="Arial, Helvetica, sans-serif">帮我规划重庆 3 天行程，五一出发，2 个成年人，预算 4000，轻松一点，多安排夜景和火锅。</text>
+  <rect x="128" y="592" width="112" height="34" rx="17" fill="#ECFEFF"/>
+  <text x="156" y="614" fill="#0E7490" font-size="16" font-family="Arial, Helvetica, sans-serif">重庆</text>
+  <rect x="252" y="592" width="112" height="34" rx="17" fill="#ECFEFF"/>
+  <text x="290" y="614" fill="#0E7490" font-size="16" font-family="Arial, Helvetica, sans-serif">3 天</text>
+  <rect x="376" y="592" width="132" height="34" rx="17" fill="#ECFEFF"/>
+  <text x="408" y="614" fill="#0E7490" font-size="16" font-family="Arial, Helvetica, sans-serif">预算 4000</text>
+  <rect x="620" y="584" width="164" height="48" rx="18" fill="#22C55E"/>
+  <text x="666" y="614" fill="white" font-size="19" font-weight="700" font-family="Arial, Helvetica, sans-serif">开始规划</text>
+
+  <rect x="884" y="214" width="430" height="576" rx="28" fill="white" stroke="#BAE6FD"/>
+  <text x="918" y="264" fill="#0F172A" font-size="28" font-weight="800" font-family="Arial, Helvetica, sans-serif">推荐灵感</text>
+  <rect x="918" y="294" width="362" height="98" rx="22" fill="#F8FAFC"/>
+  <text x="948" y="336" fill="#0F172A" font-size="24" font-weight="700" font-family="Arial, Helvetica, sans-serif">重庆 Citywalk</text>
+  <text x="948" y="366" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">山城步行路线 + 夜景 + 火锅</text>
+  <rect x="918" y="412" width="362" height="98" rx="22" fill="#F8FAFC"/>
+  <text x="948" y="454" fill="#0F172A" font-size="24" font-weight="700" font-family="Arial, Helvetica, sans-serif">成都亲子游</text>
+  <text x="948" y="484" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">熊猫基地 + 宽窄巷子 + 轻松节奏</text>
+  <rect x="918" y="530" width="362" height="98" rx="22" fill="#F8FAFC"/>
+  <text x="948" y="572" fill="#0F172A" font-size="24" font-weight="700" font-family="Arial, Helvetica, sans-serif">东京自由行</text>
+  <text x="948" y="602" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">地铁友好 + 美食 + 购物串联</text>
+  <rect x="918" y="668" width="164" height="44" rx="16" fill="#0891B2"/>
+  <text x="964" y="697" fill="white" font-size="18" font-weight="700" font-family="Arial, Helvetica, sans-serif">查看案例</text>
+
+  <rect x="96" y="724" width="226" height="138" rx="24" fill="white" opacity="0.92"/>
+  <text x="126" y="776" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">实时天气</text>
+  <text x="126" y="808" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">穿搭与出行建议</text>
+  <rect x="344" y="724" width="226" height="138" rx="24" fill="white" opacity="0.92"/>
+  <text x="374" y="776" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">知识库增强</text>
+  <text x="374" y="808" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">目的地专属内容</text>
+  <rect x="592" y="724" width="226" height="138" rx="24" fill="white" opacity="0.92"/>
+  <text x="622" y="776" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">预算估算</text>
+  <text x="622" y="808" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">住宿、门票、交通</text>
+  <rect x="840" y="724" width="226" height="138" rx="24" fill="white" opacity="0.92"/>
+  <text x="870" y="776" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">结果改写</text>
+  <text x="870" y="808" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">更省钱 / 少走路 / 亲子版</text>
+
+  <defs>
+    <linearGradient id="heroGrad" x1="32" y1="124" x2="1408" y2="992" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#CFFAFE"/>
+    </linearGradient>
+  </defs>
+</svg>

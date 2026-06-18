@@ -1,0 +1,66 @@
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1024" fill="#ECFEFF"/>
+  <rect x="32" y="24" width="1376" height="76" rx="24" fill="white" stroke="#CFFAFE"/>
+  <circle cx="86" cy="62" r="18" fill="#0891B2"/>
+  <text x="120" y="68" fill="#164E63" font-size="28" font-weight="700" font-family="Arial, Helvetica, sans-serif">Travel Agent</text>
+  <text x="920" y="68" fill="#0F172A" font-size="18" font-family="Arial, Helvetica, sans-serif">Product</text>
+  <text x="1030" y="68" fill="#0F172A" font-size="18" font-family="Arial, Helvetica, sans-serif">Planner</text>
+  <text x="1140" y="68" fill="#0F172A" font-size="18" font-family="Arial, Helvetica, sans-serif">Trips</text>
+  <rect x="1248" y="40" width="128" height="44" rx="14" fill="#22C55E"/>
+  <text x="1284" y="68" fill="white" font-size="18" font-weight="700" font-family="Arial, Helvetica, sans-serif">Start</text>
+
+  <rect x="32" y="124" width="1376" height="868" rx="36" fill="url(#heroGrad)"/>
+  <circle cx="1230" cy="220" r="210" fill="#67E8F9" opacity="0.26"/>
+  <circle cx="1140" cy="760" r="160" fill="#22C55E" opacity="0.14"/>
+  <circle cx="220" cy="230" r="160" fill="#A5F3FC" opacity="0.35"/>
+
+  <text x="96" y="238" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">AI Travel Planner</text>
+  <text x="96" y="326" fill="#062B35" font-size="64" font-weight="800" font-family="Arial, Helvetica, sans-serif">Tell me where to go</text>
+  <text x="96" y="402" fill="#062B35" font-size="64" font-weight="800" font-family="Arial, Helvetica, sans-serif">and I will build the trip</text>
+  <text x="96" y="456" fill="#335A67" font-size="24" font-family="Arial, Helvetica, sans-serif">Weather, knowledge, budget and route planning in one place.</text>
+
+  <rect x="96" y="520" width="720" height="138" rx="28" fill="white" stroke="#A5F3FC" stroke-width="2"/>
+  <text x="128" y="564" fill="#64748B" font-size="18" font-family="Arial, Helvetica, sans-serif">Plan a 3-day Chongqing trip for two adults during May holiday, budget 4000.</text>
+  <rect x="128" y="592" width="112" height="34" rx="17" fill="#ECFEFF"/>
+  <text x="156" y="614" fill="#0E7490" font-size="16" font-family="Arial, Helvetica, sans-serif">Chongqing</text>
+  <rect x="252" y="592" width="112" height="34" rx="17" fill="#ECFEFF"/>
+  <text x="296" y="614" fill="#0E7490" font-size="16" font-family="Arial, Helvetica, sans-serif">3 days</text>
+  <rect x="376" y="592" width="132" height="34" rx="17" fill="#ECFEFF"/>
+  <text x="412" y="614" fill="#0E7490" font-size="16" font-family="Arial, Helvetica, sans-serif">Budget 4000</text>
+  <rect x="620" y="584" width="164" height="48" rx="18" fill="#22C55E"/>
+  <text x="662" y="614" fill="white" font-size="19" font-weight="700" font-family="Arial, Helvetica, sans-serif">Plan now</text>
+
+  <rect x="884" y="214" width="430" height="576" rx="28" fill="white" stroke="#BAE6FD"/>
+  <text x="918" y="264" fill="#0F172A" font-size="28" font-weight="800" font-family="Arial, Helvetica, sans-serif">Popular trip ideas</text>
+  <rect x="918" y="294" width="362" height="98" rx="22" fill="#F8FAFC"/>
+  <text x="948" y="336" fill="#0F172A" font-size="24" font-weight="700" font-family="Arial, Helvetica, sans-serif">Chongqing Citywalk</text>
+  <text x="948" y="366" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">Night view, stairs, local hotpot</text>
+  <rect x="918" y="412" width="362" height="98" rx="22" fill="#F8FAFC"/>
+  <text x="948" y="454" fill="#0F172A" font-size="24" font-weight="700" font-family="Arial, Helvetica, sans-serif">Chengdu Family Trip</text>
+  <text x="948" y="484" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">Panda base and easy pace routes</text>
+  <rect x="918" y="530" width="362" height="98" rx="22" fill="#F8FAFC"/>
+  <text x="948" y="572" fill="#0F172A" font-size="24" font-weight="700" font-family="Arial, Helvetica, sans-serif">Tokyo Free Travel</text>
+  <text x="948" y="602" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">Transit-friendly food and shopping</text>
+  <rect x="918" y="668" width="164" height="44" rx="16" fill="#0891B2"/>
+  <text x="960" y="697" fill="white" font-size="18" font-weight="700" font-family="Arial, Helvetica, sans-serif">View cases</text>
+
+  <rect x="96" y="724" width="226" height="138" rx="24" fill="white" opacity="0.92"/>
+  <text x="126" y="776" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">Weather</text>
+  <text x="126" y="808" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">Packing and travel advice</text>
+  <rect x="344" y="724" width="226" height="138" rx="24" fill="white" opacity="0.92"/>
+  <text x="374" y="776" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">Knowledge</text>
+  <text x="374" y="808" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">Destination-specific facts</text>
+  <rect x="592" y="724" width="226" height="138" rx="24" fill="white" opacity="0.92"/>
+  <text x="622" y="776" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">Budget</text>
+  <text x="622" y="808" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">Hotel, ticket and transit range</text>
+  <rect x="840" y="724" width="226" height="138" rx="24" fill="white" opacity="0.92"/>
+  <text x="870" y="776" fill="#164E63" font-size="20" font-weight="700" font-family="Arial, Helvetica, sans-serif">Rewrite</text>
+  <text x="870" y="808" fill="#64748B" font-size="17" font-family="Arial, Helvetica, sans-serif">Cheaper, easier, family version</text>
+
+  <defs>
+    <linearGradient id="heroGrad" x1="32" y1="124" x2="1408" y2="992" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#CFFAFE"/>
+    </linearGradient>
+  </defs>
+</svg>
