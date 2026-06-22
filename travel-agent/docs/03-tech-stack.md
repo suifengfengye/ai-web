@@ -11,13 +11,13 @@
 
 ## 2. 总体推荐
 
-结论：前端采用 Next.js，后端采用 FastAPI + LangChain Python，数据库采用 PostgreSQL，向量检索优先选择 pgvector 或 Qdrant，部署采用“Vercel 前端 + 独立 Python 服务”。
+结论：前端采用 Next.js（用户端 + 管理后台，monorepo），后端采用 FastAPI + LangChain Python，业务数据库优先 SQLite（可平滑升级到 Postgres），向量检索优先 Chroma（轻量可本地落盘），部署采用“Vercel 前端 + 独立 Python 服务（带持久化磁盘）”。
 
 ## 3. 前端技术选型
 
 ### 3.1 推荐方案
 
-- 框架：Next.js 15
+- 框架：Next.js 15（用户端 + 管理后台）
 - 语言：TypeScript
 - UI：Tailwind CSS + shadcn/ui
 - 状态管理：Zustand
@@ -41,6 +41,37 @@
 Vue 也可行，但如果从“快速搭产品 + Vercel 部署 + AI 代码辅助”角度看，Next.js 生态更顺手。
 
 如果你更偏 Vue，也可以选 Nuxt 3，但建议在早期只选一个主战场，不要同时维护两套前端。
+
+### 3.4 monorepo（pnpm + workspace）拆分用户端与管理后台
+
+新增管理后台后，推荐把前端拆成 monorepo，以便：
+
+- 用户端与管理后台独立发布、独立路由与权限边界。
+- UI 组件、设计 token、类型定义、API client 复用，减少重复代码。
+- 统一 lint/format/test，降低多人协作成本。
+
+推荐目录结构：
+
+```text
+travel-agent/
+  apps/
+    web/        # 用户端：对话/行程/分享页
+    admin/      # 管理端：知识库/RAG/运营配置
+  packages/
+    ui/         # 共享 UI 组件（shadcn/ui 二次封装、主题 token）
+    shared/     # 共享类型、schema（Zod）、API client、工具函数
+    config/     # eslint / tsconfig / tailwind 共享配置
+```
+
+推荐包管理：
+
+- pnpm + workspace
+- 共享包通过 `@travel-agent/ui`、`@travel-agent/shared` 的方式引用
+
+部署建议：
+
+- 早期可以两个 Next.js 应用都部署到 Vercel
+- 后续如果希望同域名不同子路径，也可以做 `web` 为主应用，`admin` 独立域名或子域名（如 `admin.xxx.com`）
 
 ## 4. 后端技术选型
 
@@ -116,7 +147,7 @@ Vue 也可行，但如果从“快速搭产品 + Vercel 部署 + AI 代码辅助
 
 ### 7.1 关系型数据库
 
-推荐 PostgreSQL。
+推荐 SQLite（优先），并保留平滑升级到 PostgreSQL 的路径。
 
 存储内容：
 
@@ -127,21 +158,40 @@ Vue 也可行，但如果从“快速搭产品 + Vercel 部署 + AI 代码辅助
 - 工具调用记录。
 - Prompt 版本。
 
+SQLite 适用性说明（轻量项目的边界）：
+
+- 适合：单机/单实例、低到中等并发、快速迭代、成本敏感的 MVP。
+- 需要注意：多实例并发写入、跨地域高并发、需要复杂权限/审计时，SQLite 会逐渐成为瓶颈。
+
+推荐实现方式：
+
+- ORM：SQLAlchemy 2.x（或 SQLModel）
+- 迁移：Alembic
+- 部署：FastAPI 服务使用持久化磁盘（volume）保存 `app.db`
+
+可选增强（仍保持 SQLite 轻量心智）：
+
+- Turso / libSQL（SQLite 的远程化），减少自建数据库负担，同时保留 SQLite 体验。
+
 ### 7.2 向量检索
 
-MVP 推荐两种方案：
-
-- 方案 A：PostgreSQL + pgvector。
-- 方案 B：Qdrant。
+在“尽可能轻量”的前提下，优先推荐 Chroma（本地落盘、Python 生态成熟），并保留升级到独立向量数据库的能力。
 
 推荐优先级：
 
-- 如果知识库规模不大，优先 `pgvector`，部署简单。
-- 如果后续知识量明显增长，再切换或新增 Qdrant。
+- 方案 A（优先）：Chroma（本地落盘，和 LangChain 结合简单）
+- 方案 B：Qdrant（独立服务，适合数据量增长或多实例部署）
+
+选择依据：
+
+- 早期知识库数据量不大时，Chroma 的“本地目录 + 持久化”最省心。
+- 如果后面要做多实例、共享向量库或召回压力明显增加，再切换到 Qdrant 更合适。
+
+说明：你了解过 Chroma，这条路径学习成本最低，也最符合“轻量项目”目标。
 
 ### 7.3 缓存
 
-推荐 Redis。
+MVP 阶段不强制引入 Redis，优先采用“可选缓存”策略。
 
 用途：
 
@@ -149,6 +199,11 @@ MVP 推荐两种方案：
 - 热门目的地结果缓存。
 - 限流。
 - 异步任务状态。
+
+推荐策略：
+
+- 单实例：进程内 TTL cache + SQLite（或文件）即可
+- 多实例：再引入 Redis（Upstash/自建）用于共享缓存与限流
 
 ## 8. 前后端接口设计建议
 
@@ -216,10 +271,10 @@ MVP 推荐两种方案：
 
 ### 11.1 推荐部署架构
 
-- Vercel：Next.js 前端。
-- Render / Railway / Fly.io / ECS：FastAPI + Agent 服务。
-- Supabase / Neon：PostgreSQL。
-- Upstash Redis：Redis。
+- Vercel：Next.js（用户端 web + 管理端 admin，可两个项目或子域名拆分）。
+- Render / Railway / Fly.io / ECS：FastAPI + Agent 服务（需要持久化磁盘）。
+- SQLite：随 FastAPI 服务一起部署（持久化 volume）或使用 Turso/libSQL。
+- Redis：可选（只有在多实例/限流/异步队列需求明确时再上）。
 
 ### 11.2 为什么不把 Python Agent 直接放在 Vercel
 
@@ -257,6 +312,87 @@ MVP 推荐两种方案：
 - 第三方返回异常时的降级策略。
 - 敏感信息脱敏。
 - 用户输入审核与滥用限制。
+
+## 14. 系统设计图与技术架构图
+
+### 14.1 系统设计图（功能视角）
+
+```mermaid
+flowchart LR
+  user[用户（Web/移动端）] --> web[Web 用户端（Next.js）]
+  adminUser[管理员] --> admin[Web 管理端（Next.js Admin）]
+
+  web --> api[API 网关（FastAPI）]
+  admin --> api
+
+  api --> auth[鉴权与权限（JWT/Cookie + RBAC）]
+  api --> chat[对话/规划接口（SSE）]
+  api --> kb[知识库管理接口（上传/更新/启用/重索引）]
+
+  chat --> agent[Agent 编排（LangChain/LangGraph）]
+  agent --> tools[工具层（天气/地图/预算/百科/MCP）]
+  agent --> rag[RAG 检索]
+
+  kb --> ingest[文档解析与切分]
+  ingest --> embed[Embedding 生成]
+  embed --> vec[(向量库：Chroma 持久化目录)]
+
+  rag --> vec
+  rag --> sql[(业务库：SQLite)]
+  api --> sql
+```
+
+### 14.2 技术架构图（部署视角）
+
+```mermaid
+flowchart TB
+  subgraph Browser[浏览器/移动 WebView]
+    U[用户端]
+    A[管理端]
+  end
+
+  subgraph Vercel[Vercel]
+    WebApp[Next.js - apps/web]
+    AdminApp[Next.js - apps/admin]
+  end
+
+  subgraph Compute[容器/VM（Fly.io / Railway / Render）]
+    API[FastAPI API + SSE]
+    Agent[LangChain Agent Runtime]
+    Worker[异步任务（可选）]
+    Disk[(持久化磁盘 Volume)]
+  end
+
+  subgraph Storage[存储]
+    SQLite[(SQLite / libSQL)]
+    Chroma[(Chroma 持久化目录)]
+    Files[(对象存储：可选，用于原始文件)]
+  end
+
+  subgraph External[外部依赖]
+    LLM[LLM Provider（OpenAI 兼容/OpenRouter）]
+    MCP[MCP Servers / 外部工具]
+    Weather[天气/地图等第三方 API]
+  end
+
+  U --> WebApp
+  A --> AdminApp
+  WebApp --> API
+  AdminApp --> API
+
+  API --> Agent
+  Agent --> LLM
+  Agent --> MCP
+  Agent --> Weather
+
+  API --> Disk
+  Agent --> Disk
+  Worker --> Disk
+
+  Disk --> SQLite
+  Disk --> Chroma
+  API --> Files
+```
 
 ## 14. 推荐的项目目录
 

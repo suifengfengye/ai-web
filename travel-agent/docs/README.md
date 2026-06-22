@@ -7,9 +7,13 @@
 1. `01-product-prd.md`
 2. `02-ui-design.md`
 3. `03-tech-stack.md`
+4. `04-architect-growth-roadmap.md`
+5. `05-study-plan.md`
 
 各文档说明：
 
 - `01-product-prd.md`：产品定位、能力边界、MCP 扩展、Prompt 策略、服务端架构与路线图。
 - `02-ui-design.md`：页面规划、交互设计、视觉方向、组件清单、AI 辅助设计方法。
 - `03-tech-stack.md`：前后端、Agent、数据库、流式输出、部署与观测的技术选型建议。
+- `04-architect-growth-roadmap.md`：围绕 Travel Agent 项目的学习建议、技术掌握目标、架构思维与阶段性成长路线。
+- `05-study-plan.md`：按每天 2 小时设计的 8 周工作与学习打卡清单，可持续更新完成状态。

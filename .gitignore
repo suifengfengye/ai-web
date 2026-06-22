@@ -19,3 +19,7 @@ ai-services-playground
 .venv
 
 venv_playground
+
+.trae
+
+**/.next/**
