@@ -1,9 +1,12 @@
-import React from 'react'
+async function wait(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
 
-export default function DashboardPage({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function DashboardPage() {
+  // Simulate a slow server render so `dashboard/loading.tsx` can appear.
+  await wait(3000)
+
   return <div>Dashboard Page</div>
 }
