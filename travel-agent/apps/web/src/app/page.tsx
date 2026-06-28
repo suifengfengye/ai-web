@@ -1,19 +1,12 @@
 'use client'
-import React, { useEffect, useState } from "react"
+import { useEffect } from 'react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default function HomePage({}: {}) {
-    const [count, setCount] = useState(0)
-    // useEffect(() => {
-    //     (new Promise((resolve) => {
-    //         setTimeout(() => {
-    //             resolve({ success: true })
-    //         }, 3000)
-    //     })).then(() => {
-    //         setCount(1)
-    //     })
-    // }, [])
-
+    useEffect(() => {
+        redirect('/chat')
+    }, [])
     return (
         <div>
             <h1>Home Page</h1>

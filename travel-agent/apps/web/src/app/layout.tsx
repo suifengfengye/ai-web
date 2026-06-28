@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import React from 'react'
 
+import './globals.css'
+
 export default function RootLayout({
   children,
 }: {
@@ -9,9 +11,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div>
-            <Link href="/">Home</Link>
-        </div>
         {children}
     </body>
     </html>
