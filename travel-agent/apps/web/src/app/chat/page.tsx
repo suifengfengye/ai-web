@@ -57,6 +57,13 @@ import {
 
 export default function ChatPage() {
     const isBusy = false
+    React.useEffect(() => {
+        fetch('/api/chat', {
+            method: "POST",
+        }).then((result) => {
+            console.log(`@@@result`, result)
+        })
+    }, [])
     return (
         <div style={{ padding: 24 }}>
             <MessageScrollerProvider>
