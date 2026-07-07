@@ -1,6 +1,11 @@
 import { createDeepSeek } from '@ai-sdk/deepseek'
 import { NextRequest, NextResponse } from 'next/server'
-import { createUIMessageStreamResponse, streamText, toUIMessageStream } from 'ai'
+import {
+  convertToModelMessages,
+  createUIMessageStreamResponse,
+  streamText,
+  toUIMessageStream,
+} from 'ai'
 
 import { API_KEY } from './key'
 
@@ -17,15 +22,20 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
-  console.log(`@@@body`, body)
-  const messages = Array.isArray(body?.messages) && body.messages.length > 0
-    ? body.messages
-    : [
-        {
-          role: 'user',
-          content: '请问你是 deepseek 吗？你是不是世界上最强的模型？',
-        },
-      ]
+  const messages =
+    Array.isArray(body?.messages) && body.messages.length > 0
+      ? await convertToModelMessages(body.messages)
+      : await convertToModelMessages([
+          {
+            role: 'user',
+            parts: [
+              {
+                type: 'text',
+                text: '请问你是 deepseek 吗？你是不是世界上最强的模型？',
+              },
+            ],
+          },
+        ])
 
   const result = streamText({
     model: deepseek('deepseek-chat'),

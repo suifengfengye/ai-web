@@ -1,5 +1,6 @@
 "use client"
-import React from "react";
+import React, { useState } from "react";
+import { useChat } from '@ai-sdk/react'
 import {
     RotateCwIcon,
     MessageCircleDashedIcon,
@@ -12,8 +13,17 @@ import {
 } from 'lucide-react'
 
 import {
-    MessageScrollerProvider
+    MessageScroller,
+    MessageScrollerContent,
+    MessageScrollerProvider,
+    MessageScrollerViewport,
 } from '@/components/ui/message-scroller'
+import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+  MessageFooter,
+} from "@/components/ui/message"
 import {
     Card,
     CardHeader,
@@ -54,16 +64,30 @@ import {
 import {
     Textarea,
 } from '@/components/ui/textarea'
+import {
+    Bubble,
+    BubbleContent,
+    BubbleGroup,
+    BubbleReactions,
+} from "@/components/ui/bubble"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
 
 export default function ChatPage() {
+    const [userText, setUserText] = useState<string>('')
+    const { messages, sendMessage } = useChat()
     const isBusy = false
-    React.useEffect(() => {
-        fetch('/api/chat', {
-            method: "POST",
-        }).then((result) => {
-            console.log(`@@@result`, result)
-        })
-    }, [])
+    // React.useEffect(() => {
+    //     fetch('/api/chat', {
+    //         method: "POST",
+    //     }).then((result) => {
+    //         console.log(`@@@result`, result)
+    //     })
+    // }, [])
+
     return (
         <div style={{ padding: 24 }}>
             <MessageScrollerProvider>
@@ -76,32 +100,86 @@ export default function ChatPage() {
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Button variant="outline" size="icon" aria-label="Reset conversation" 
-                                                onClick={() => { 
-                                                // todo
+                                            <Button variant="outline" size="icon" aria-label="Reset conversation"
+                                                onClick={() => {
+                                                    // todo
                                                 }} disabled={isBusy}>
-                                                    <RotateCwIcon />
+                                                <RotateCwIcon />
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                        <p>Reset</p>
+                                            <p>Reset</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
                             </CardAction>
                         </CardHeader>
                         <CardContent className="flex-1 overflow-hidden p-0">
-                            <Empty className="h-full">
-                                <EmptyHeader>
-                                <EmptyMedia variant="icon">
-                                    <MessageCircleDashedIcon />
-                                </EmptyMedia>
-                                <EmptyTitle>您好, 大小寒!</EmptyTitle>
-                                <EmptyDescription>
-                                    我们今天来做什么呢？点击发送开始新的对话
-                                </EmptyDescription>
-                                </EmptyHeader>
-                            </Empty>
+                            {
+                                messages?.length <= 0 ? (
+                                    <Empty className="h-full">
+                                        <EmptyHeader>
+                                            <EmptyMedia variant="icon">
+                                                <MessageCircleDashedIcon />
+                                            </EmptyMedia>
+                                            <EmptyTitle>您好, 大小寒!</EmptyTitle>
+                                            <EmptyDescription>
+                                                我们今天来做什么呢？点击发送开始新的对话
+                                            </EmptyDescription>
+                                        </EmptyHeader>
+                                    </Empty>
+                                ) : (
+                                    <MessageScroller>
+                                        <MessageScrollerViewport>
+                                            <MessageScrollerContent>
+                                                {
+                                                    messages.map((messageItem, index) => {
+                                                        return (
+                                                            <Message>
+                                                                <MessageAvatar>
+                                                                    <Avatar>
+                                                                        <AvatarImage src="/avatars/02.png" alt="@rabbit" />
+                                                                        <AvatarFallback>R</AvatarFallback>
+                                                                    </Avatar>
+                                                                </MessageAvatar>
+                                                                {/* 
+                                                                    {
+                                                                        "id":"xxx",
+                                                                        "role": "user",
+                                                                        "parts": [
+                                                                            {
+                                                                                "type": "text",
+                                                                                "text": "xxx"
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                */}
+                                                                <MessageContent>
+                                                                    <Bubble variant="muted">
+                                                                        <BubbleContent>
+                                                                            {(messageItem?.parts || []).map((partItem) => {
+                                                                                if (partItem?.type === 'text') {
+                                                                                    return (
+                                                                                        <span>
+                                                                                            {partItem?.text}
+                                                                                        </span>
+                                                                                    )
+                                                                                }
+                                                                                return ''
+                                                                            })}
+                                                                        </BubbleContent>
+                                                                    </Bubble>
+                                                                </MessageContent>
+                                                            </Message>
+                                                        )
+                                                    })
+                                                }
+                                            </MessageScrollerContent>
+                                        </MessageScrollerViewport>
+                                    </MessageScroller>
+                                )
+                            }
+
                         </CardContent>
                         <CardFooter className="flex-col gap-2">
                             <form
@@ -114,66 +192,73 @@ export default function ChatPage() {
                                 }}
                                 className="w-full"
                             >
-                            <InputGroup>
-                                <div className="h-14 w-full px-3 py-2.5">
-                                <Textarea className="border-none rounded-none focus-visible:ring-0
-                                    " style={{ maxHeight: 50 }} />
-                                    {/* {nextMessage ? (
+                                <InputGroup>
+                                    <div className="h-14 w-full px-3 py-2.5">
+                                        <Textarea 
+                                        className="border-none rounded-none focus-visible:ring-0" 
+                                        style={{ maxHeight: 50 }} 
+                                        onChange={(e) => {
+                                            setUserText(e?.target?.value)
+                                        }}/>
+                                        {/* {nextMessage ? (
                                     getMessageText(nextMessage)
                                     ) : (
                                     <span className="text-muted-foreground">
                                         No messages queued. Reset the conversation.
                                     </span>
                                     )} */}
-                                </div>
-                                <InputGroupAddon align="block-end" className="pt-1">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                    <InputGroupButton
-                                        aria-label="Add files"
-                                        type="button"
-                                        size="icon-sm"
-                                        variant="outline"
-                                    >
-                                        <PlusIcon />
-                                    </InputGroupButton>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align="start"
-                                        side="top"
-                                        className="w-44"
-                                    >
-                                    <DropdownMenuItem>
-                                        <PaperclipIcon />
-                                        Add Photos & Files
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        <ImageIcon />
-                                        Create Image
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <TelescopeIcon />
-                                        Deep Research
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <GlobeIcon />
-                                        Web Search
-                                    </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                                <InputGroupButton
-                                    type="submit"
-                                    variant="default"
-                                    size="icon-sm"
-                                    // disabled={!nextMessage || isBusy}
-                                    className="ml-auto"
-                                >
-                                    <ArrowUpIcon />
-                                    <span className="sr-only">Send</span>
-                                </InputGroupButton>
-                                </InputGroupAddon>
-                            </InputGroup>
+                                    </div>
+                                    <InputGroupAddon align="block-end" className="pt-1">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <InputGroupButton
+                                                    aria-label="Add files"
+                                                    type="button"
+                                                    size="icon-sm"
+                                                    variant="outline"
+                                                >
+                                                    <PlusIcon />
+                                                </InputGroupButton>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="start"
+                                                side="top"
+                                                className="w-44"
+                                            >
+                                                <DropdownMenuItem>
+                                                    <PaperclipIcon />
+                                                    Add Photos & Files
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem>
+                                                    <ImageIcon />
+                                                    Create Image
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                    <TelescopeIcon />
+                                                    Deep Research
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                    <GlobeIcon />
+                                                    Web Search
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        <InputGroupButton
+                                            // type="submit"
+                                            variant="default"
+                                            size="icon-sm"
+                                            // disabled={!nextMessage || isBusy}
+                                            className="ml-auto"
+                                            onClick={() => {
+                                                sendMessage({ text: userText })
+                                            }}
+                                        >
+                                            <ArrowUpIcon />
+                                            <span className="sr-only">Send</span>
+                                        </InputGroupButton>
+                                    </InputGroupAddon>
+                                </InputGroup>
                             </form>
                         </CardFooter>
                     </Card>
