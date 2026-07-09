@@ -14,7 +14,9 @@ import {
 
 import {
     MessageScroller,
+    MessageScrollerButton,
     MessageScrollerContent,
+    MessageScrollerItem,
     MessageScrollerProvider,
     MessageScrollerViewport,
 } from '@/components/ui/message-scroller'
@@ -78,23 +80,16 @@ import {
 
 export default function ChatPage() {
     const [userText, setUserText] = useState<string>('')
-    const { messages, sendMessage } = useChat()
-    const isBusy = false
-    // React.useEffect(() => {
-    //     fetch('/api/chat', {
-    //         method: "POST",
-    //     }).then((result) => {
-    //         console.log(`@@@result`, result)
-    //     })
-    // }, [])
+    const { messages, sendMessage, setMessages, status, stop } = useChat()
+    const isBusy = status === 'submitted' || status === 'streaming'
 
     return (
         <div style={{ padding: 24 }}>
-            <MessageScrollerProvider>
+            <MessageScrollerProvider autoScroll>
                 <div className="relative flex flex-col gap-4">
-                    <Card className="mx-auto h-140 w-full gap-0">
+                    <Card className="mx-auto w-full gap-0">
                         <CardHeader className="gap-1 border-b">
-                            <CardTitle>新对话</CardTitle>
+                            <CardTitle>旅游攻略对话</CardTitle>
                             <CardDescription>我今天能帮您什么忙？</CardDescription>
                             <CardAction>
                                 <TooltipProvider>
@@ -102,8 +97,13 @@ export default function ChatPage() {
                                         <TooltipTrigger asChild>
                                             <Button variant="outline" size="icon" aria-label="Reset conversation"
                                                 onClick={() => {
-                                                    // todo
-                                                }} disabled={isBusy}>
+                                                    if (isBusy) {
+                                                        stop()
+                                                    }
+                                                    setMessages([])
+                                                    setUserText('')
+                                                }}
+                                                disabled={messages.length === 0 && userText.trim().length === 0}>
                                                 <RotateCwIcon />
                                             </Button>
                                         </TooltipTrigger>
@@ -114,7 +114,7 @@ export default function ChatPage() {
                                 </TooltipProvider>
                             </CardAction>
                         </CardHeader>
-                        <CardContent className="flex-1 overflow-hidden p-0 pt-4">
+                        <CardContent className="flex-1 overflow-hidden p-0 pt-4 pb-4">
                             {
                                 messages?.length <= 0 ? (
                                     <Empty className="h-full">
@@ -122,7 +122,7 @@ export default function ChatPage() {
                                             <EmptyMedia variant="icon">
                                                 <MessageCircleDashedIcon />
                                             </EmptyMedia>
-                                            <EmptyTitle>您好, 大小寒!</EmptyTitle>
+                                            <EmptyTitle>您好!</EmptyTitle>
                                             <EmptyDescription>
                                                 我们今天来做什么呢？点击发送开始新的对话
                                             </EmptyDescription>
@@ -135,48 +135,56 @@ export default function ChatPage() {
                                                 {
                                                     messages.map((messageItem, index) => {
                                                         const isUser = messageItem.role === 'user'
+                                                        const isLastMessage = index === messages.length - 1
                                                         return (
-                                                            <Message key={messageItem.id} align={isUser ? 'end' : 'start'}>
-                                                                <MessageAvatar>
-                                                                    <Avatar>
-                                                                        <AvatarImage src={isUser? "/avatars/user.png": "/avatars/robot.png"} className="p-[6px]" alt="@robot" />
-                                                                        <AvatarFallback>U</AvatarFallback>
-                                                                    </Avatar>
-                                                                </MessageAvatar>
-                                                                {/* 
-                                                                    {
-                                                                        "id":"xxx",
-                                                                        "role": "user",
-                                                                        "parts": [
-                                                                            {
-                                                                                "type": "text",
-                                                                                "text": "xxx"
-                                                                            }
-                                                                        ]
-                                                                    }
-                                                                */}
-                                                                <MessageContent>
-                                                                    <Bubble variant={isUser ? 'default' : 'muted'}>
-                                                                        <BubbleContent>
-                                                                            {(messageItem?.parts || []).map((partItem) => {
-                                                                                if (partItem?.type === 'text') {
-                                                                                    return (
-                                                                                        <span>
-                                                                                            {partItem?.text}
-                                                                                        </span>
-                                                                                    )
+                                                            <MessageScrollerItem
+                                                                key={messageItem.id}
+                                                                messageId={messageItem.id}
+                                                                scrollAnchor={isLastMessage}
+                                                            >
+                                                                <Message align={isUser ? 'end' : 'start'}>
+                                                                    <MessageAvatar>
+                                                                        <Avatar>
+                                                                            <AvatarImage src={isUser? "/avatars/user.png": "/avatars/robot.png"} className="p-[6px]" alt="@robot" />
+                                                                            <AvatarFallback>U</AvatarFallback>
+                                                                        </Avatar>
+                                                                    </MessageAvatar>
+                                                                    {/* 
+                                                                        {
+                                                                            "id":"xxx",
+                                                                            "role": "user",
+                                                                            "parts": [
+                                                                                {
+                                                                                    "type": "text",
+                                                                                    "text": "xxx"
                                                                                 }
-                                                                                return ''
-                                                                            })}
-                                                                        </BubbleContent>
-                                                                    </Bubble>
-                                                                </MessageContent>
-                                                            </Message>
+                                                                            ]
+                                                                        }
+                                                                    */}
+                                                                    <MessageContent>
+                                                                        <Bubble variant={isUser ? 'default' : 'muted'}>
+                                                                            <BubbleContent>
+                                                                                {(messageItem?.parts || []).map((partItem) => {
+                                                                                    if (partItem?.type === 'text') {
+                                                                                        return (
+                                                                                            <span>
+                                                                                                {partItem?.text}
+                                                                                            </span>
+                                                                                        )
+                                                                                    }
+                                                                                    return ''
+                                                                                })}
+                                                                            </BubbleContent>
+                                                                        </Bubble>
+                                                                    </MessageContent>
+                                                                </Message>
+                                                            </MessageScrollerItem>
                                                         )
                                                     })
                                                 }
                                             </MessageScrollerContent>
                                         </MessageScrollerViewport>
+                                        <MessageScrollerButton direction="end" />
                                     </MessageScroller>
                                 )
                             }
@@ -251,7 +259,7 @@ export default function ChatPage() {
                                             // type="submit"
                                             variant="default"
                                             size="icon-sm"
-                                            // disabled={!nextMessage || isBusy}
+                                            disabled={isBusy}
                                             className="ml-auto"
                                             onClick={() => {
                                                 sendMessage({ text: userText })
