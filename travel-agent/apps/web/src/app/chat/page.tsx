@@ -114,7 +114,7 @@ export default function ChatPage() {
                                 </TooltipProvider>
                             </CardAction>
                         </CardHeader>
-                        <CardContent className="flex-1 overflow-hidden p-0">
+                        <CardContent className="flex-1 overflow-hidden p-0 pt-4">
                             {
                                 messages?.length <= 0 ? (
                                     <Empty className="h-full">
@@ -134,12 +134,13 @@ export default function ChatPage() {
                                             <MessageScrollerContent>
                                                 {
                                                     messages.map((messageItem, index) => {
+                                                        const isUser = messageItem.role === 'user'
                                                         return (
-                                                            <Message>
+                                                            <Message key={messageItem.id} align={isUser ? 'end' : 'start'}>
                                                                 <MessageAvatar>
                                                                     <Avatar>
-                                                                        <AvatarImage src="/avatars/02.png" alt="@rabbit" />
-                                                                        <AvatarFallback>R</AvatarFallback>
+                                                                        <AvatarImage src={isUser? "/avatars/user.png": "/avatars/robot.png"} className="p-[6px]" alt="@robot" />
+                                                                        <AvatarFallback>U</AvatarFallback>
                                                                     </Avatar>
                                                                 </MessageAvatar>
                                                                 {/* 
@@ -155,7 +156,7 @@ export default function ChatPage() {
                                                                     }
                                                                 */}
                                                                 <MessageContent>
-                                                                    <Bubble variant="muted">
+                                                                    <Bubble variant={isUser ? 'default' : 'muted'}>
                                                                         <BubbleContent>
                                                                             {(messageItem?.parts || []).map((partItem) => {
                                                                                 if (partItem?.type === 'text') {
@@ -196,7 +197,9 @@ export default function ChatPage() {
                                     <div className="h-14 w-full px-3 py-2.5">
                                         <Textarea 
                                         className="border-none rounded-none focus-visible:ring-0" 
+                                        placeholder="请输入您的问题"
                                         style={{ maxHeight: 50 }} 
+                                        value={userText}
                                         onChange={(e) => {
                                             setUserText(e?.target?.value)
                                         }}/>
@@ -209,7 +212,7 @@ export default function ChatPage() {
                                     )} */}
                                     </div>
                                     <InputGroupAddon align="block-end" className="pt-1">
-                                        <DropdownMenu>
+                                        {/* <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <InputGroupButton
                                                     aria-label="Add files"
@@ -243,7 +246,7 @@ export default function ChatPage() {
                                                     Web Search
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        </DropdownMenu> */}
                                         <InputGroupButton
                                             // type="submit"
                                             variant="default"
@@ -252,6 +255,7 @@ export default function ChatPage() {
                                             className="ml-auto"
                                             onClick={() => {
                                                 sendMessage({ text: userText })
+                                                setUserText('')
                                             }}
                                         >
                                             <ArrowUpIcon />
